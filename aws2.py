@@ -66,16 +66,21 @@ def generate(original):
     region_name = os.getenv('AWS_REGION') or "us-east-1"
     bedrock = boto3.client("bedrock-runtime", region_name=region_name)
 
-    prompt = f"""You are a grammar correction tool. Your task is to ONLY fix grammar, sentence structure, or punctuation. 
+    sys_prompt = f"""You are a grammar correction tool. Your task is to ONLY fix grammar, sentence structure, or punctuation. 
 You must NOT change the meaning, rephrase sentences, or add new content. Get rid of the filler words. Give the result only once dont repeat the same output more than once.
 For example if we have an input such as i went to the market dont repeat i went to the market twice in the output.
 Keep the structure, tone, and context exactly the same — only fix what's grammatically wrong. Do not include any text before or after the output.
 Correct this text:
 {original}
 Return only the corrected version."""
+    question=f'''correct this transcription data- {original} '''    
+    header = "<|start_header_id|>system<|end_header_id|>\nYour system prompt here<|eot_id|>\n"
+    chat_history_formatted=sys_prompt
+    msg = f"<|start_header_id|>user<|end_header_id|>\n{question}<|eot_id|>\n<|start_header_id|>assistant<|end_header_id|>\n"
+    final_prompt = header + chat_history_formatted + msg
 
     json_payload = json.dumps({
-        "prompt": prompt,
+        "prompt": final_prompt,
         "temperature": 0
     })
 
